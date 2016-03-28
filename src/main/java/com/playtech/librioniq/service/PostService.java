@@ -10,9 +10,10 @@ public interface PostService {
      */
     void delete(Long id);
 
+    // TODO search
     /**
      * search for the post corresponding
      * to the query.
      */
-//    public List<PostDTO> search(String query);
+    // public List<PostDTO> search(String query);
 }

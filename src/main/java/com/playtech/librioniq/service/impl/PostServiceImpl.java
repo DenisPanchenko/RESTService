@@ -1,10 +1,13 @@
 package com.playtech.librioniq.service.impl;
 
+import com.playtech.librioniq.domain.Answer;
+import com.playtech.librioniq.domain.Comment;
+import com.playtech.librioniq.domain.Post;
+import com.playtech.librioniq.domain.Question;
 import com.playtech.librioniq.repository.AnswerRepository;
 import com.playtech.librioniq.repository.CommentRepository;
 import com.playtech.librioniq.repository.PostRepository;
 import com.playtech.librioniq.repository.QuestionRepository;
-import com.playtech.librioniq.repository.search.PostSearchRepository;
 import com.playtech.librioniq.service.AnswerService;
 import com.playtech.librioniq.service.CommentService;
 import com.playtech.librioniq.service.QuestionService;
@@ -14,14 +17,15 @@ import com.playtech.librioniq.web.rest.dto.QuestionDTO;
 import com.playtech.librioniq.web.rest.mapper.AnswerMapper;
 import com.playtech.librioniq.web.rest.mapper.CommentMapper;
 import com.playtech.librioniq.web.rest.mapper.QuestionMapper;
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service Implementation for managing Post.
@@ -45,9 +49,6 @@ public class PostServiceImpl implements QuestionService, AnswerService, CommentS
     private AnswerRepository answerRepository;
 
     @Inject
-    private PostSearchRepository postSearchRepository;
-
-    @Inject
     private QuestionMapper questionMapper;
 
     @Inject
@@ -58,60 +59,90 @@ public class PostServiceImpl implements QuestionService, AnswerService, CommentS
 
     @Override
     public AnswerDTO save(AnswerDTO answerDTO) {
-        throw new NotImplementedException("");
+        log.debug("Request to save answer: " + answerDTO);
+        Answer answer = answerMapper.answerDTOToAnswer(answerDTO);
+        answer = answerRepository.save(answer);
+        AnswerDTO result = answerMapper.answerToAnswerDTO(answer);
+        return result;
     }
 
     @Override
     public CommentDTO save(CommentDTO commentDTO) {
-        throw new NotImplementedException("");
+        log.debug("Request to save comment: " + commentDTO);
+        Comment comment = commentMapper.commentDTOToComment(commentDTO);
+        comment = commentRepository.save(comment);
+        CommentDTO result = commentMapper.commentToCommentDTO(comment);
+        return result;
     }
 
     @Override
     public QuestionDTO save(QuestionDTO questionDTO) {
-        throw new NotImplementedException("");
+        log.debug("Request to save question: " + questionDTO);
+        Question question = questionMapper.questionDTOToQuestion(questionDTO);
+        question = questionRepository.save(question);
+        QuestionDTO result = questionMapper.questionToQuestionDTO(question);
+        return result;
     }
 
     @Override
     public List<AnswerDTO> findAllAnswersForQuestion(Long questionId) {
-        throw new NotImplementedException("");
+        log.debug("Request to fina all answers for question: " + questionId);
+        Post parentPost = postRepository.findOne(questionId);
+        List<Answer> answers = new LinkedList<>();
+        for (Post child : parentPost.getPosts()) {
+            Answer answer = answerRepository.findOne(child.getId());
+            if (answer != null) {
+                answers.add(answer);
+            }
+        }
+        return answers
+                .stream()
+                .map(answerMapper::answerToAnswerDTO)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     @Override
     public List<CommentDTO> findAllCommentsForPost(Long postId) {
-        throw new NotImplementedException("");
+        log.debug("Request to find all comments for post: " + postId);
+        Post parentPost = postRepository.findOne(postId);
+        List<Comment> comments = new LinkedList<>();
+        for (Post child : parentPost.getPosts()) {
+            Comment comment = commentRepository.findOne(child.getId());
+            if (comment != null) {
+                comments.add(comment);
+            }
+        }
+        return comments
+                .stream()
+                .map(commentMapper::commentToCommentDTO)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     @Override
     public List<QuestionDTO> findAllQuestions() {
-        throw new NotImplementedException("");
+        log.debug("Request to find all questions");
+        List<QuestionDTO> result = questionRepository
+                .findAll()
+                .stream()
+                .map(questionMapper::questionToQuestionDTO)
+                .collect(Collectors.toCollection(LinkedList::new));
+        return result;
     }
 
     @Override
     public void delete(Long id) {
-        throw new NotImplementedException("");
+        log.debug("Request to delete post with id: " + id);
+        postRepository.delete(id);
     }
 
     @Override
     public QuestionDTO findQuestion(Long id) {
-        throw new NotImplementedException("");
+        log.debug("Request to find question with id: " + id);
+        return questionMapper.questionToQuestionDTO(questionRepository.findOne(id));
     }
 
     // AUTO GENERATED STUFF
 
-    /*
-
-    private final Logger log = LoggerFactory.getLogger(PostServiceImpl.class);
-    
-    @Inject
-    private PostRepository postRepository;
-    
-    @Inject
-    private PostMapper postMapper;
-    
-    @Inject
-    private PostSearchRepository postSearchRepository;
-    
-    */
 /**
      * Save a post.
      * @return the persisted entity
@@ -124,21 +155,6 @@ public class PostServiceImpl implements QuestionService, AnswerService, CommentS
         PostDTO result = postMapper.postToPostDTO(post);
         postSearchRepository.save(post);
         return result;
-    }
-
-    // TODO save for QuestionDTO
-    public QuestionDTO save(QuestionDTO questionDTO) {
-        throw new NotYetImplementedException();
-    }
-
-    // TODO save for AnswerDTO
-    public AnswerDTO save(AnswerDTO answerDTO) {
-        throw new NotYetImplementedException();
-    }
-
-    // TODO save for CommentDTO
-    public CommentDTO save(CommentDTO commentDTO) {
-        throw new NotYetImplementedException();
     }
 
     */
