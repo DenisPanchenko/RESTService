@@ -31,7 +31,6 @@ public class QuestionResource {
     @Inject
     private QuestionService questionService;
 
-    // TODO Needs updating
     /**
      * POST  /questions -> Create a new question.
      */
@@ -41,15 +40,14 @@ public class QuestionResource {
     @Timed
     public ResponseEntity<QuestionDTO> createQuestion(@Valid @RequestBody QuestionDTO questionDTO) throws URISyntaxException {
         log.debug("REST request to save Question : {}", questionDTO);
-        return null;
-/*
         if (questionDTO.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("question", "idExists", "New question can not have an id")).body(null);
         }
-        QuestionDTO result = postService.save(questionDTO);
-        return ResponseEntity.created(new URI("/api/questions/" + result.getId()))
+        QuestionDTO result = questionService.save(questionDTO);
+        return ResponseEntity
+                .created(new URI("/api/questions/" + result.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert("question", result.getId().toString()))
-                .body(result);*/
+                .body(result);
     }
 
     /**
@@ -61,15 +59,14 @@ public class QuestionResource {
     @Timed
     public ResponseEntity<QuestionDTO> updateQuestion(@Valid @RequestBody QuestionDTO questionDTO) throws URISyntaxException {
         log.debug("REST request to update Question : {}", questionDTO);
-        return null;
-/*
         if (questionDTO.getId() == null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("question", "idNotExists", "Try to update non-existing question")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("question", "wrongId", "Try to update non-existing question")).body(null);
         }
-        QuestionDTO result = postService.save(questionDTO);
-        return ResponseEntity.ok()
+        QuestionDTO result = questionService.save(questionDTO);
+        return ResponseEntity
+                .ok()
                 .headers(HeaderUtil.createEntityUpdateAlert("question", questionDTO.getId().toString()))
-                .body(result);*/
+                .body(result);
     }
 
     /**
@@ -82,8 +79,7 @@ public class QuestionResource {
     @Transactional(readOnly = true)
     public List<QuestionDTO> getAllQuestions() {
         log.debug("REST request to get all Questions");
-        return null;
-//        return postService.findAllQuestions();
+        return questionService.findAllQuestions();
     }
 
     /**
@@ -95,8 +91,14 @@ public class QuestionResource {
     @Timed
     public ResponseEntity<QuestionDTO> getQuestion(@PathVariable Long id) {
         log.debug("REST request to get Question : {}", id);
-
-        throw new NotImplementedException("#deleteQuestion has not implemented yet");
+        QuestionDTO result = questionService.findQuestion(id);
+        if (result == null) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("question", "wrongId", "Try to get non-existing question")).body(null);
+        }
+        return ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createAlert("question", "Question with id: " + id))
+                .body(result);
     }
 
     /**
@@ -108,8 +110,11 @@ public class QuestionResource {
     @Timed
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
         log.debug("REST request to delete Question : {}", id);
-
-        throw new NotImplementedException("#deleteQuestion has not implemented yet");
+        questionService.delete(id);
+        return ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityDeletionAlert("question", "Delete question with id: " + id))
+                .body(null);
     }
 
     /**
